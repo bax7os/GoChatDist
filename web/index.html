@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>gochatdist - Chat Web</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 1rem;
+            background: #f9f9f9;
+            color: #333;
+        }
+
+        input,
+        button {
+            padding: 0.5rem;
+            margin: 0.2rem 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #0077cc;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005fa3;
+        }
+
+        #messages {
+            margin-top: 1rem;
+            background: #eee;
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .message {
+            margin-bottom: 0.5rem;
+        }
+
+        .status {
+            font-size: 0.8rem;
+            color: gray;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>gochatdist - Chat Web</h1>
+
+    <input type="text" id="sender" placeholder="Seu nome" />
+    <input type="text" id="receiver" placeholder="Destinatário" />
+    <input type="text" id="content" placeholder="Mensagem" />
+    <button onclick="sendMessage()">Enviar</button>
+
+    <div id="messages"></div>
+
+    <script>
+        async function sendMessage() {
+            const sender = document.getElementById("sender").value.trim();
+            const receiver = document.getElementById("receiver").value.trim();
+            const content = document.getElementById("content").value.trim();
+            const div = document.getElementById("messages");
+
+            if (!sender || !receiver || !content) {
+                alert("Preencha todos os campos.");
+                return;
+            }
+
+            const msgElement = document.createElement("div");
+            msgElement.className = "message";
+            msgElement.innerHTML = `<b>${sender} → ${receiver}:</b> ${content} <span class="status">(enviando...)</span>`;
+            div.appendChild(msgElement);
+            div.scrollTop = div.scrollHeight;
+
+            try {
+                const response = await fetch("http://localhost:8080/sendMessage", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ sender, receiver, content }),
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+
+                const data = await response.json();
+                msgElement.querySelector(".status").textContent = `(${data.status})`;
+            } catch (err) {
+                msgElement.querySelector(".status").textContent = `(erro)`;
+                alert("Erro ao enviar mensagem: " + err);
+            }
+        }
+    </script>
+</body>
+
+</html>
