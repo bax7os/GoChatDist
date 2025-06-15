@@ -66,7 +66,6 @@ func SubscribeToQueue(queueName string) {
 			})
 		}
 	}()
-defer conn.Close()
-defer ch.Close()
+
 	fmt.Printf("Escutando mensagens na fila: %s\n", queueName)
 }
