@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"gochatdist/messaging"
+	"gochatdist/messaging" //interação com o RabbitMQ
 	pb "gochatdist/proto"
 	"log"
 	"time"
@@ -14,6 +14,7 @@ func main() {
 	username := "Carlos"
 
 	// Inicia o subscriber para receber mensagens
+	// adiciona o username ao nome da fila do rabbitmq
 	messaging.SubscribeToQueue(username)
 
 	// Conecta ao gRPC
@@ -23,9 +24,10 @@ func main() {
 	}
 	defer conn.Close()
 
+	// cria um cliente gRPC
 	client := pb.NewChatServiceClient(conn)
 
-	// Envia uma mensagem
+	// Envia uma mensagem de teste
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 

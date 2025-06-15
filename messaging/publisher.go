@@ -4,6 +4,9 @@ import (
 	"github.com/streadway/amqp"
 )
 
+//http://localhost:15672/#/queues
+
+
 func PublishMessage(message string, queueName string) error {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
@@ -28,7 +31,7 @@ func PublishMessage(message string, queueName string) error {
 	if err != nil {
 		return err
 	}
-
+	
 	err = ch.Publish(
 		"", queueName, false, false,
 		amqp.Publishing{

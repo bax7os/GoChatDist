@@ -5,7 +5,7 @@ services:
     image: rabbitmq:3-management
     container_name: gochatdist-rabbitmq
     ports:
-      - "5672:5672" # Porta padrão AMQP para conexão do seu app
+      - "5672:5672" # Porta padrão AMQP
       - "15672:15672" # Porta do painel web (dashboard)
     environment:
       RABBITMQ_DEFAULT_USER: guest

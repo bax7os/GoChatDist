@@ -15,6 +15,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Erro ao iniciar o servidor: %v", err)
 	}
+	// cria o servidor grpc
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterChatServiceServer(grpcServer, server.NewChatServer())
