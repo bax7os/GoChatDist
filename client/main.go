@@ -1,17 +1,23 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"gochatdist/messaging" //interação com o RabbitMQ
 	pb "gochatdist/proto"
 	"log"
+	"os"
 	"time"
 
 	"google.golang.org/grpc"
 )
 
 func main() {
-	username := "Carlos"
+	fmt.Print("Digite seu usuário: ")
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	username := scanner.Text()
 
 	// Inicia o subscriber para receber mensagens
 	// adiciona o username ao nome da fila do rabbitmq
@@ -32,9 +38,9 @@ func main() {
 	defer cancel()
 
 	resp, err := client.SendMessage(ctx, &pb.MessageRequest{
-		Sender:   "Ana",
+		Sender:   "Servidor",
 		Receiver: username,
-		Content:  "Olá, Carlos!",
+		Content:  fmt.Sprintf("Bem vindo, %s", username),
 	})
 	if err != nil {
 		log.Fatalf("Erro ao enviar mensagem: %v", err)
