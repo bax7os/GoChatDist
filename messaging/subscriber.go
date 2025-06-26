@@ -1,71 +1,53 @@
+// Em messaging/subscriber.go
 package messaging
 
 import (
-	"encoding/json"
 	"fmt"
-	"gochatdist/storage"
 	"log"
-	"time"
 
 	"github.com/streadway/amqp"
 )
 
-// responsável por conectar ao RabbitMQ, criar uma fila especifica para o usuario, consumir mensagens
-// e processar e armazenar as mensagens recebidas
-
-func SubscribeToQueue(queueName string) {
-
-
-	//conexao ao rabbitmq
+func SubscribeToQueue(queueName string, handler func(msgBody []byte)) {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
-		log.Fatalf("Erro ao conectar ao RabbitMQ: %v", err)
+		log.Printf("Erro ao conectar ao RabbitMQ: %v", err)
+		return
 	}
-
 
 	ch, err := conn.Channel()
 	if err != nil {
-		log.Fatalf("Erro ao abrir canal: %v", err)
-	}
-	// criar uma fila para o usuario
-	_, err = ch.QueueDeclare(queueName, false, false, false, false, nil)
-	if err != nil {
-		log.Fatalf("Erro ao declarar fila: %v", err)
+		log.Printf("Erro ao abrir canal: %v", err)
+		return
 	}
 
-	// consumindo as mensagens
+	_, err = ch.QueueDeclare(
+		queueName,
+		true,  // durable: AQUI ESTÁ A MUDANÇA! Garante que o subscriber se conecte à mesma fila durável.
+		false, // autoDelete
+		false, // exclusive
+		false, // noWait
+		nil,   // arguments
+	)
+	if err != nil {
+		log.Printf("Erro ao declarar fila: %v", err)
+		return
+	}
+
+	// Importante: O autoAck continua true, o que significa que a mensagem é removida
+	// da fila ASSIM que é entregue. Se o usuário recarregar a página, não a verá de novo.
+	// Para um histórico completo, a persistência em banco de dados ainda é a melhor solução.
 	msgs, err := ch.Consume(queueName, "", true, false, false, false, nil)
 	if err != nil {
-		log.Fatalf("Erro ao registrar consumidor: %v", err)
+		log.Printf("Erro ao registrar consumidor: %v", err)
+		return
 	}
 
-	// go routine para processar as mensagens
-	
-	go func() {
-		for d := range msgs {
-			fmt.Printf("Nova mensagem: %s\n", d.Body)
+	fmt.Printf("Subscriber iniciado para a fila durável: %s\n", queueName)
 
-			var content struct {
-				Sender  string `json:"sender"`
-				Content string `json:"content"`
-			}
-			// Aqui para facilitar, suponho que a mensagem esteja no formato JSON
-			// Se estiver como texto simples, pode simplificar
-			err := json.Unmarshal(d.Body, &content)
-			if err != nil {
-				// Se for texto plano, pode ignorar o erro e salvar como conteúdo bruto
-				content.Content = string(d.Body)
-			}
+	for d := range msgs {
+		handler(d.Body)
+	}
 
-			// Salvar mensagem recebida
-			storage.SaveMessage(queueName, storage.Message{
-				Sender:    content.Sender,
-				Receiver:  queueName,
-				Content:   content.Content,
-				Timestamp: time.Now(),
-			})
-		}
-	}()
-
-	fmt.Printf("Escutando mensagens na fila: %s\n", queueName)
+	log.Printf("Subscriber para %s foi encerrado.", queueName)
 }

@@ -1,19 +1,39 @@
 syntax = "proto3";
 
+// O nome do pacote protobuf.
 package chat;
 
-option go_package = "proto/chat";
+// A OPÇÃO MAIS IMPORTANTE: Define o caminho de importação do Go.
+// Deve ser o [nome do seu módulo no go.mod]/[caminho para a pasta proto].
+option go_package = "./proto";
 
-service ChatService {
-  rpc SendMessage (MessageRequest) returns (MessageResponse);
-}
-
+// Representa uma mensagem direta ou de canal.
 message MessageRequest {
   string sender = 1;
   string receiver = 2;
   string content = 3;
 }
 
+// Resposta genérica para operações.
 message MessageResponse {
   string status = 1;
+}
+
+// Pedido para registrar um novo usuário no sistema.
+message RegisterUserRequest {
+  string username = 1;
+}
+
+// Resposta da operação de registro.
+message RegisterUserResponse {
+  string status = 1;
+}
+
+// O serviço de chat com todos os métodos disponíveis.
+service ChatService {
+  // Envia uma mensagem direta para um usuário.
+  rpc SendMessage(MessageRequest) returns (MessageResponse) {}
+  
+  // Registra um usuário no serviço de nomes.
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
 }
