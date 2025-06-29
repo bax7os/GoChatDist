@@ -74,15 +74,15 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 
 	go messaging.SubscribeToQueue(username, wsCallback)
 	messaging.BindToChannel(username, "geral")
-	wsCallback([]byte("Você entrou no canal #geral. Use /join #nome, /leave #nome, ou #nome msg..."))
+	wsCallback([]byte("Você entrou no canal #geral. Para ver os comandos do servidor digite @Servidor comandos. Use /join #nome para entrar em um chat, /leave #nome para sair de um chat, ou #nome <msg> para enviar uma mensagem para um chat específico..."))
 
 
 	for {
 		_, message, err := ws.ReadMessage()
-		if err != nil {
+		if err != nil { // O bo se pá aqui. O client que desconecta ainda é mantido no servidor e a mensagem é "entregue" eu acho
 			log.Printf("Cliente %s desconectado: %v", username, err)
 			clientsMu.Lock()
-			delete(clients, username)
+			delete(clients, username) // não seria melhor trocar o map pra false e inserir o comando de deletar usuário para caso o mesmo usuário conecte de novo?
 			clientsMu.Unlock()
 			break
 		}
@@ -95,10 +95,15 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			if len(parts) < 2 { continue }
 			receiver := strings.TrimPrefix(command, "@")
 			content := parts[1]
-			
+			complete_message := ""
 			// --- PASSO 2: TRATAR O ERRO DE USUÁRIO INEXISTENTE ---
+			if receiver == "Servidor" {
+				complete_message = content // content = "lista de usuários", "comandos", Adicionar comando de buscar canais existentes
+			} else {
+				complete_message = fmt.Sprintf("(DM de %s) %s", username, content)
+			}
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			_, err := grpcClient.SendMessage(ctx, &pb.MessageRequest{Sender: username, Receiver: receiver, Content: fmt.Sprintf("(DM de %s) %s", username, content)})
+			_, err := grpcClient.SendMessage(ctx, &pb.MessageRequest{Sender: username, Receiver: receiver, Content: complete_message})
 			if err != nil {
 				log.Printf("Erro ao enviar via gRPC: %v", err)
 				// Envia o feedback de erro para o usuário!

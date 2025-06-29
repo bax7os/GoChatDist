@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gochatdist/messaging"
 	pb "gochatdist/proto"
+	"strings"
 	"sync"
 )
 
@@ -36,13 +37,37 @@ func (s *ChatServer) SendMessage(ctx context.Context, req *pb.MessageRequest) (*
 	sender := req.GetSender()
 	receiver := req.GetReceiver()
 	content := req.GetContent()
+	comands := "lista de usuários, comandos"
 
 	// --- VERIFICAÇÃO DE EXISTÊNCIA ---
 	s.mu.RLock()
 	_, exists := s.registeredUsers[receiver]
 	s.mu.RUnlock()
 
-	if !exists {
+	if receiver == "Servidor" {
+		usuario := sender
+		receiver = usuario
+		sender = "Servidor"
+		switch content {
+			case "lista de usuários":
+				fmt.Printf("Enviando lista de usuário existentes para %s\n", usuario)
+				var builder strings.Builder
+				builder.WriteString("Lista de usuário existentes: ")
+				for key,_ := range s.registeredUsers {
+					builder.WriteString(key)
+					builder.WriteString(", ")
+				}
+				content = strings.TrimSuffix(builder.String(), ", ")
+				//content = fmt.Sprintf("Lista de usuário existentes: %v\n", s.registeredUsers)
+			case "comandos":
+				fmt.Printf("Enviando comandos do servidor para: %s\n", usuario)
+				content = fmt.Sprintf("Comandos do servidor: %s\n", comands)
+			default:
+				fmt.Printf("Comando não reconhecido: %s\n", content)
+				// Caso o comando não exista, retorna um erro.
+				return nil, fmt.Errorf("comando '%s' não reconhecido", content)
+		}
+	} else if !exists {
 		fmt.Printf("Tentativa de envio para usuário inexistente: %s\n", receiver)
 		// Retorna um erro que o cliente pode tratar.
 		return nil, fmt.Errorf("usuário '%s' não existe", receiver)
