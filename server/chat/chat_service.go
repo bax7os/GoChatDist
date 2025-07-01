@@ -44,11 +44,12 @@ func (s *ChatServer) SendMessage(ctx context.Context, req *pb.MessageRequest) (*
 	_, exists := s.registeredUsers[receiver]
 	s.mu.RUnlock()
 
+	// Caso o destinatário seja o servidor:
 	if receiver == "Servidor" {
 		usuario := sender
 		receiver = usuario
 		sender = "Servidor"
-		switch content {
+		switch content { // Cada case é um comando
 			case "lista de usuários":
 				fmt.Printf("Enviando lista de usuário existentes para %s\n", usuario)
 				var builder strings.Builder
@@ -58,7 +59,6 @@ func (s *ChatServer) SendMessage(ctx context.Context, req *pb.MessageRequest) (*
 					builder.WriteString(", ")
 				}
 				content = strings.TrimSuffix(builder.String(), ", ")
-				//content = fmt.Sprintf("Lista de usuário existentes: %v\n", s.registeredUsers)
 			case "comandos":
 				fmt.Printf("Enviando comandos do servidor para: %s\n", usuario)
 				content = fmt.Sprintf("Comandos do servidor: %s\n", comands)

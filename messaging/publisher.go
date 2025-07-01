@@ -6,9 +6,6 @@ import (
 
 //http://localhost:15672/#/queues
 
-
-
-
 func PublishMessage(message string, queueName string) error {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
@@ -25,7 +22,7 @@ func PublishMessage(message string, queueName string) error {
 	// Declara a fila, garantindo que os parâmetros são os mesmos do subscriber.
 	_, err = ch.QueueDeclare(
 		queueName,
-		true,  // durable: true -> AQUI ESTÁ A CORREÇÃO. Agora é consistente.
+		true,  // durable: true
 		false, // autoDelete
 		false, // exclusive
 		false, // noWait

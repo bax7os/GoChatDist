@@ -22,7 +22,7 @@ var (
 	}
 	clients   = make(map[string]*websocket.Conn)
 	clientsMu sync.Mutex
-)
+) // variável do cliente
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
@@ -79,10 +79,10 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		_, message, err := ws.ReadMessage()
-		if err != nil { // O bo se pá aqui. O client que desconecta ainda é mantido no servidor e a mensagem é "entregue" eu acho
+		if err != nil {
 			log.Printf("Cliente %s desconectado: %v", username, err)
 			clientsMu.Lock()
-			delete(clients, username) // não seria melhor trocar o map pra false e inserir o comando de deletar usuário para caso o mesmo usuário conecte de novo?
+			delete(clients, username)
 			clientsMu.Unlock()
 			break
 		}
@@ -96,9 +96,9 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			receiver := strings.TrimPrefix(command, "@")
 			content := parts[1]
 			complete_message := ""
-			// --- PASSO 2: TRATAR O ERRO DE USUÁRIO INEXISTENTE ---
+			// --- PASSO 2: TRATAR O ERRO DE USUÁRIO INEXISTENTE E MENSAGEM PARA O SERVIDOR ---
 			if receiver == "Servidor" {
-				complete_message = content // content = "lista de usuários", "comandos", Adicionar comando de buscar canais existentes
+				complete_message = content // content = "lista de usuários", "comandos"
 			} else {
 				complete_message = fmt.Sprintf("(DM de %s) %s", username, content)
 			}
@@ -111,7 +111,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			}
 			cancel()
 			// ----------------------------------------------------
-
+		// Envio de mensagem para grupo
 		} else if strings.HasPrefix(command, "#") {
 			// (código dos canais permanece igual)
 			if len(parts) < 2 { continue }
@@ -120,6 +120,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			fullMessage := fmt.Sprintf("[#%s] %s: %s", channelName, username, content)
 			err := messaging.PublishToChannel(channelName, fullMessage)
 			if err != nil { log.Printf("Erro ao publicar no canal %s: %v", channelName, err) }
+		// Entrar e sair de grupos
 		} else if strings.HasPrefix(command, "/") {
 			// (código de /join e /leave permanece igual)
 			if len(parts) < 2 { continue }

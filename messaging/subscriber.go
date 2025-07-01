@@ -23,7 +23,7 @@ func SubscribeToQueue(queueName string, handler func(msgBody []byte)) {
 
 	_, err = ch.QueueDeclare(
 		queueName,
-		true,  // durable: AQUI ESTÁ A MUDANÇA! Garante que o subscriber se conecte à mesma fila durável.
+		true,  // durable: Garante que o subscriber se conecte à mesma fila durável.
 		false, // autoDelete
 		false, // exclusive
 		false, // noWait
