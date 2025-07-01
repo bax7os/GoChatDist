@@ -34,9 +34,7 @@ func SubscribeToQueue(queueName string, handler func(msgBody []byte)) {
 		return
 	}
 
-	// Importante: O autoAck continua true, o que significa que a mensagem é removida
-	// da fila ASSIM que é entregue. Se o usuário recarregar a página, não a verá de novo.
-	// Para um histórico completo, a persistência em banco de dados ainda é a melhor solução.
+	
 	msgs, err := ch.Consume(queueName, "", true, false, false, false, nil)
 	if err != nil {
 		log.Printf("Erro ao registrar consumidor: %v", err)

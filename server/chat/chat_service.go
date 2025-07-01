@@ -39,7 +39,7 @@ func (s *ChatServer) SendMessage(ctx context.Context, req *pb.MessageRequest) (*
 	content := req.GetContent()
 	comands := "lista de usuários, comandos"
 
-	// --- VERIFICAÇÃO DE EXISTÊNCIA ---
+
 	s.mu.RLock()
 	_, exists := s.registeredUsers[receiver]
 	s.mu.RUnlock()
@@ -49,7 +49,7 @@ func (s *ChatServer) SendMessage(ctx context.Context, req *pb.MessageRequest) (*
 		usuario := sender
 		receiver = usuario
 		sender = "Servidor"
-		switch content { // Cada case é um comando
+		switch content { 
 			case "lista de usuários":
 				fmt.Printf("Enviando lista de usuário existentes para %s\n", usuario)
 				var builder strings.Builder
@@ -64,12 +64,12 @@ func (s *ChatServer) SendMessage(ctx context.Context, req *pb.MessageRequest) (*
 				content = fmt.Sprintf("Comandos do servidor: %s\n", comands)
 			default:
 				fmt.Printf("Comando não reconhecido: %s\n", content)
-				// Caso o comando não exista, retorna um erro.
+				
 				return nil, fmt.Errorf("comando '%s' não reconhecido", content)
 		}
 	} else if !exists {
 		fmt.Printf("Tentativa de envio para usuário inexistente: %s\n", receiver)
-		// Retorna um erro que o cliente pode tratar.
+	
 		return nil, fmt.Errorf("usuário '%s' não existe", receiver)
 	}
 	// ---------------------------------

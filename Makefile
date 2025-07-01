@@ -2,7 +2,6 @@
 
 # ==============================================================================
 # VARIÁVEIS DE CONFIGURAÇÃO
-# Usar variáveis torna o Makefile mais fácil de manter e adaptar.
 # ==============================================================================
 
 # Nomes dos binários de saída que serão criados na raiz do projeto.
@@ -104,7 +103,6 @@ run: build
 # ==============================================================================
 
 # Limpa os binários e os arquivos .go gerados pelo Protobuf.
-# A correção aqui é garantir que os arquivos *_grpc.pb.go também sejam removidos.
 clean:
 	@echo "--- Limpando binários e arquivos gerados ---"
 	@rm -f $(CLIENT_BIN) $(SERVER_BIN)

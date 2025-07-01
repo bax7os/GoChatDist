@@ -1,10 +1,8 @@
 syntax = "proto3";
 
-// O nome do pacote protobuf.
+
 package chat;
 
-// A OPÇÃO MAIS IMPORTANTE: Define o caminho de importação do Go.
-// Deve ser o [nome do seu módulo no go.mod]/[caminho para a pasta proto].
 option go_package = "./proto";
 
 // Representa uma mensagem direta ou de canal.
